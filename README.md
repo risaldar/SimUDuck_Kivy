@@ -1,2 +1,2 @@
 # SimUDuck_Kivy
-SimUDuck using Kivy
+SimUDuck using Kivy Framework
