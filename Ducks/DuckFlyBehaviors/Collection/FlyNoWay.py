@@ -9,7 +9,7 @@ class FlyNoWayClass(FlyBehavior):
     def __init__(self):
         pass
     def fly(self):
-        print 'I can not fly'
+        return 'I can not fly'
     def getDetails(self):
         return self.details
 # ----------------------------------------------

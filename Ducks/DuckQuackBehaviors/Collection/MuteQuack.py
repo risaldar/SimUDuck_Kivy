@@ -9,7 +9,7 @@ class MuteQuackClass(QuackBehavior):
     def __init__(self):
         pass
     def quack(self):
-        print 'I am mute'
+        return 'I am mute'
     def getDetails(self):
         return self.details
 # ----------------------------------------------

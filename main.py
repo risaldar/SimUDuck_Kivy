@@ -23,24 +23,21 @@ class MyApp(App):
 
     AllDuckInstanceObjects = []
     AllDuckCreateButtons = {}
+    AllDuckTypeLayouts = {}
     AllDuckInstanceButtons = []
     OneSelectedDuckInstanceButton = None
 
     TD_label = Label(text="Total Ducks = " + str(len(AllDuckInstanceObjects)), size_hint=(0.5, 0.2), halign="left", valign="middle")
-    layout_AllDucks = BoxLayout()
-    #layout_Mallard = BoxLayout()
-    #layout_RedHead = BoxLayout()
-    #layout_RubberDuck = BoxLayout()
-    #layout_DecoyDuck = BoxLayout()
 
     def btnCbk_addNewDuck(self, instance):
-        DuckTypeName = instance.text[len('Add a new '):]
+        DuckTypeName = instance.text
         OneNewDuck = CollectionsManager.createNewDuck(DuckTypeName)
         self.AllDuckInstanceObjects.append(OneNewDuck)
         details = DuckTypeName + "\n" + OneNewDuck.flyBehavior.getDetails() + "\n" + OneNewDuck.quackBehavior.getDetails()
         btn_OneNewDuck = Button(text=details, on_press=self.btnCbk_selectOneDuck, size_hint=(.2, 1))
         self.AllDuckInstanceButtons.append(btn_OneNewDuck)
-        self.layout_AllDucks.add_widget(btn_OneNewDuck)
+        self.AllDuckTypeLayouts[DuckTypeName].add_widget(btn_OneNewDuck)
+        Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_selectOneDuck(self, instance):
         self.OneSelectedDuckInstanceButton = instance
@@ -56,19 +53,34 @@ class MyApp(App):
             OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
             OneFlyBehavior = CollectionsManager.createNewDuckFlyBehavior(instance.text)
             self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].setFlyBehavior(OneFlyBehavior)
+            Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_setQuackBehavior(self, instance):
         if self.OneSelectedDuckInstanceButton is not None:
             OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
             OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
             self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].setQuackBehavior(OneQuackBehavior)
+            Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_performDuck(self, instance):
         if self.OneSelectedDuckInstanceButton is not None:
             OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
-            self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performFly()
-            self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performQuack()
+            pre_details=self.OneSelectedDuckInstanceButton.text
+            splitted_details = pre_details.split('\n')
+            splitted_details[1]=self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performFly()
+            splitted_details[2]=self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performQuack()
+            details = '\n'.join(splitted_details)
+            self.OneSelectedDuckInstanceButton.text = details
+            Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
+    def btnCbk_removeDuck(self, instance):
+        if self.OneSelectedDuckInstanceButton is not None:
+            OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
+            layout = self.AllDuckTypeLayouts[self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].__class__.__name__[:-len('Class')]]
+            layout.remove_widget(self.OneSelectedDuckInstanceButton)
+            del self.AllDuckInstanceButtons[OneSelectedDuckInstanceIndex]
+            del self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex]
+            
     def UpdateLabel(self, label):
         self.TD_label.text="Total Ducks = " + str(len(self.AllDuckInstanceObjects))
         for idx, instance in enumerate(self.AllDuckInstanceButtons):
@@ -82,15 +94,14 @@ class MyApp(App):
     def build(self):
         self.title = 'SimUDuck'
 
-        Clock.schedule_interval(self.UpdateLabel, 0.2)
-
         CollectionsManager.loadCollections()
 
+        dropdown_addNewDuck = DropDown()
         for OneDuckTypeName in CollectionsManager.getAllDuckTypes():
-            self.AllDuckCreateButtons[OneDuckTypeName] = Button(text='Add a new ' + OneDuckTypeName, on_press=self.btnCbk_addNewDuck, size_hint=(0.5, 0.2), halign="left", valign="middle")
-
-        btn_totalducks = Button(text='Total Ducks', on_press=self.btnCbk_totalducks, size_hint=(0.5, 0.2), halign="left", valign="middle")
-
+            btn = Button(text=OneDuckTypeName, on_press=self.btnCbk_addNewDuck, size_hint_y=None)
+            dropdown_addNewDuck.add_widget(btn)
+        btn_addNewDuck = Button(text='Add a new Duck', on_release=dropdown_addNewDuck.open, size_hint=(0.5, 0.2), halign="left", valign="middle")
+    
         dropdown_setFlyBehavior = DropDown()
         for OneDuckFlyBehaviorName in CollectionsManager.getAllDuckFlyBehaviors():
             btn = Button(text=OneDuckFlyBehaviorName, on_press=self.btnCbk_setFlyBehavior, size_hint_y=None)
@@ -104,39 +115,27 @@ class MyApp(App):
         btn_setQuackBehavior = Button(text='Set Quack Behavior', on_release=dropdown_setQuackBehavior.open,size_hint=(0.5, 0.2), halign="left", valign="middle")
         
         btn_PerformDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(0.5, 0.2), halign="left", valign="middle")
+        
+        btn_removeDuck = Button(text='Remove a Duck', on_press=self.btnCbk_removeDuck,size_hint=(0.5, 0.2), halign="left", valign="middle")
 
         layout = BoxLayout()
-        for OneButtionKey, OneButtonInstance in self.AllDuckCreateButtons.items():
-            layout.add_widget(OneButtonInstance)
 
-        layout.add_widget(btn_totalducks)
+        layout.add_widget(btn_addNewDuck)
         layout.add_widget(btn_setFlyBehavior)
         layout.add_widget(btn_setQuackBehavior)
         layout.add_widget(btn_PerformDuck)
+        layout.add_widget(btn_removeDuck)
         layout.add_widget(self.TD_label)
-
-        AllDuckInstances_label = Label(text="All Ducks Instances", size_hint=(0.5, 0.2), halign="left", valign="top")
-        self.layout_AllDucks.add_widget(AllDuckInstances_label)
-
-        #MD_label = Label(text="Mallard Ducks ", size_hint=(0.5, 0.2), halign="left", valign="top")
-        #self.layout_Mallard.add_widget(MD_label)
-#
-        #RD_label = Label(text="Red Head Ducks ", size_hint=(0.5, 0.2), halign="left", valign="top")
-        #self.layout_RedHead.add_widget(RD_label)
-#
-        #RbD_label = Label(text="Rubber Ducks ", size_hint=(0.5, 0.2), halign="left", valign="top")
-        #self.layout_RubberDuck.add_widget(RbD_label)
-#
-        #Decoy_label = Label(text="Decoy Ducks ", size_hint=(0.5, 0.2), halign="left", valign="top")
-        #self.layout_DecoyDuck.add_widget(Decoy_label)
 
         root = BoxLayout(orientation='vertical')
         root.add_widget(layout)
-        root.add_widget(self.layout_AllDucks)
-        #root.add_widget(self.layout_Mallard)
-        #root.add_widget(self.layout_RedHead)
-        #root.add_widget(self.layout_RubberDuck)
-        #root.add_widget(self.layout_DecoyDuck)
+        
+        for OneDuckTypeName in CollectionsManager.getAllDuckTypes():
+            boxLayout = BoxLayout()
+            label = Label(text=OneDuckTypeName, size_hint=(0.5, 0.2), halign="left", valign="top")
+            boxLayout.add_widget(label)
+            self.AllDuckTypeLayouts[OneDuckTypeName] = boxLayout
+            root.add_widget(boxLayout)
 
         return root
 

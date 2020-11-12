@@ -9,7 +9,7 @@ class FlyWithWingsClass(FlyBehavior):
     def __init__(self):
         pass
     def fly(self):
-        print 'I am flying with wings'
+        return 'I am flying with wings'
     def getDetails(self):
         return self.details
 # ----------------------------------------------

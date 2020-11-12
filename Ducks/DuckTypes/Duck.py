@@ -16,8 +16,8 @@ class DuckClass:
         self.quackBehavior = behavior
 
     def performFly(self):
-        self.flyBehavior.fly()
+        return self.flyBehavior.fly()
 
     def performQuack(self):
-        self.quackBehavior.quack()
+        return self.quackBehavior.quack()
 # ----------------------------------------------

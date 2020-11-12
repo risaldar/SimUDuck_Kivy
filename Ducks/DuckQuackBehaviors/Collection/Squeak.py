@@ -9,7 +9,7 @@ class SqueakClass(QuackBehavior):
     def __init__(self):
         pass
     def quack(self):
-        print 'I squeak'
+        return 'I squeak'
     def getDetails(self):
         return self.details
 # ----------------------------------------------
