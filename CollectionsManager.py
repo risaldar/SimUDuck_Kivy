@@ -2,6 +2,7 @@ import abc
 import os
 import importlib
 
+from Ducks.CoopTypes.Coop import CoopClass
 from Ducks.DuckTypes.Duck import DuckClass
 from Ducks.DuckFlyBehaviors.FlyBehavior import FlyBehavior
 from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
@@ -9,6 +10,7 @@ from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
 
 # ====================================== Main ==============================#
 
+AllCoopTypes = []
 AllDuckTypes = []
 AllDuckColors = []
 AllDuckFlyBehaviors = []
@@ -19,15 +21,21 @@ def getCollectionsRootPath(CollectionName):
 
 
 def loadCollections():
+    global AllCoopTypes
     global AllDuckTypes
     global AllDuckColors
     global AllDuckFlyBehaviors
     global AllDuckQauckBehaviors
+    AllCoopTypes = []
     AllDuckTypes = []
     AllDuckColors = []
     AllDuckFlyBehaviors = []
     AllDuckQauckBehaviors = []
     # walk and collect classes
+    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('CoopTypes')):
+        for filename in filenames:
+            if filename != '__init__.py' and filename.endswith('.py'):
+                AllCoopTypes.append(filename[:-3])
     for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('DuckTypes')):
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
@@ -44,7 +52,12 @@ def loadCollections():
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllDuckQauckBehaviors.append(filename[:-3])
-    print 'initialized CollectionsManager'
+
+def createNewCoop(CoopTypeName):
+    Module = importlib.import_module('Ducks.CoopTypes.Collection.' + CoopTypeName)
+    CoopTypeClass = getattr(Module, CoopTypeName + 'Class')
+    OneCoop = CoopTypeClass()
+    return OneCoop
 
 def createNewDuck(DuckTypeName):
     Module = importlib.import_module('Ducks.DuckTypes.Collection.' + DuckTypeName)
@@ -69,6 +82,10 @@ def createNewDuckQuackBehavior(DuckQuackBehaviorName):
     DuckQuackBehaviorClass = getattr(Module, DuckQuackBehaviorName + 'Class')
     OneDuckQuackBehavior = DuckQuackBehaviorClass()
     return OneDuckQuackBehavior
+
+def getAllCoopTypes():
+    global AllCoopTypes
+    return AllCoopTypes
 
 def getAllDuckTypes():
     global AllDuckTypes

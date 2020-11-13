@@ -1,8 +1,8 @@
 
-import abc
+from DuckComponent import DuckComponentClass
 
 # ========================================= Duck Class ===================================#
-class DuckClass:
+class DuckClass(DuckComponentClass):
     flyBehavior = None
     quackBehavior = None
 
