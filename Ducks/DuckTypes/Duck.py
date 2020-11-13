@@ -20,4 +20,16 @@ class DuckClass(DuckComponentClass):
 
     def performQuack(self):
         return self.quackBehavior.quack()
+
+    def getColumns(self):
+        # Unneeded method for Duck class but implemented due to Composite Pattern
+        pass
+
+    def getRows(self):
+        # Unneeded method for Duck class but implemented due to Composite Pattern
+        pass
+
+    def addDuckComponent(self, component):
+        # a duck can't add anything else in it.
+        return False
 # ----------------------------------------------

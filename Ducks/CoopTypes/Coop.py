@@ -2,23 +2,30 @@
 from DuckComponent import DuckComponentClass
 
 # ========================================= Coop Class ===================================#
-class CoopClass:
-    ducks = None
+class CoopClass(DuckComponentClass):
+    ChildDuckComponents = None
 
     def __init__(self):
+        self.ChildDuckComponents = []
         print 'initialized a new Coop'
 
     def setFlyBehavior(self, behavior):
-        pass
+        for child in self.ChildDuckComponents:
+            child.setFlyBehavior(behavior)
 
     def setQuackBehavior(self, behavior):
-        pass
+        for child in self.ChildDuckComponents:
+            child.setQuackBehavior(behavior)
 
     def performFly(self):
-        #return self.flyBehavior.fly()
+        # Unneeded method for Duck class but implemented due to Composite Pattern
         pass
 
     def performQuack(self):
-        #return self.quackBehavior.quack()
+        # Unneeded method for Duck class but implemented due to Composite Pattern
         pass
+
+    def addDuckComponent(self, component):
+        self.ChildDuckComponents.append(component)
+        return True
 # ----------------------------------------------

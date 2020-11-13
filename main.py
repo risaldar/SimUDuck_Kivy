@@ -9,6 +9,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.label import Label
 from kivy.uix.dropdown import DropDown
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 
 import abc
@@ -22,100 +23,98 @@ from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
 # ====================================== Main ==============================#
 class MyApp(App):
 
-    AllDuckInstanceObjects = []
     AllDuckCreateButtons = {}
-    #AllDuckTypeLayouts = {}
     AllDuckTypeLayout = None
-    AllDuckInstanceButtons = []
-    OneSelectedDuckInstanceButton = None
-    OneSelectedCoopInstanceButton = None
-    TD_label = None
+    AllDuckButtonInstanceDictionary = {}
+    OneSelectedButton = None
+    label_totalDucks = None
 
     def btnCbk_addNewCoop(self, instance):
         CoopTypeName = instance.text
         OneNewCoop = CollectionsManager.createNewCoop(CoopTypeName)
-        self.AllDuckInstanceObjects.append(OneNewCoop)
-        details = CoopTypeName + "\n"
-        btn_OneNewCoop = Button(text=details, on_press=self.btnCbk_selectOneCoop, background_color=(1.0, 0.0, 0.0, 1.0), size_hint=(1, 1))
-        self.AllDuckInstanceButtons.append(btn_OneNewCoop)
-        self.AllDuckTypeLayout.add_widget(btn_OneNewCoop)
-        #Clock.schedule_once(self.UpdateLabel, 0.1)
+        details = CoopTypeName + "\n" + str(OneNewCoop.getColumns()) + 'x' + str(OneNewCoop.getRows())
+        btn_OneNewCoop = Button(text=details, on_press=self.btnCbk_selectOneDuckComponent, background_color=(1.0, 0.0, 0.0, 1.0), size_hint=(1, 0.2))
+        gridlayout_OneNewCoop = GridLayout(cols = OneNewCoop.getColumns(), rows = OneNewCoop.getRows())
+        boxlayout_OneNewCoop = BoxLayout(orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
+        boxlayout_OneNewCoop.add_widget(btn_OneNewCoop)
+        boxlayout_OneNewCoop.add_widget(gridlayout_OneNewCoop)
+        self.AllDuckButtonInstanceDictionary[btn_OneNewCoop] = OneNewCoop
+
+        # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
+        if self.OneSelectedButton is None or self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].addDuckComponent(OneNewCoop) == False:
+            self.AllDuckTypeLayout.add_widget(boxlayout_OneNewCoop)
+        else:
+            for child in self.OneSelectedButton.parent.children:
+                # Each Coop layout has exactly 2 children. One is Coop button which is now pressed and other is grid where we need to add new coop
+                if child != self.OneSelectedButton:
+                    child.add_widget(boxlayout_OneNewCoop)
+                    break
+        Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_addNewDuck(self, instance):
         DuckTypeName = instance.text
         OneNewDuck = CollectionsManager.createNewDuck(DuckTypeName)
-        self.AllDuckInstanceObjects.append(OneNewDuck)
         details = DuckTypeName + "\n" + OneNewDuck.flyBehavior.getDetails() + "\n" + OneNewDuck.quackBehavior.getDetails()
-        btn_OneNewDuck = Button(text=details, on_press=self.btnCbk_selectOneDuck, size_hint=(1, 1))
-        if self.OneSelectedCoopInstanceButton is None:
-            self.AllDuckInstanceButtons.append(btn_OneNewDuck)
-            #self.AllDuckTypeLayouts[DuckTypeName].add_widget(btn_OneNewDuck)
+        btn_OneNewDuck = Button(text=details, on_press=self.btnCbk_selectOneDuckComponent, size_hint=(1, 1))
+        self.AllDuckButtonInstanceDictionary[btn_OneNewDuck] = OneNewDuck
+        # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
+        if self.OneSelectedButton is None or self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].addDuckComponent(OneNewDuck) == False:
             self.AllDuckTypeLayout.add_widget(btn_OneNewDuck)
         else:
-            print 'TODO'
-            #self.OneSelectedCoopInstanceButton.add_widget(btn_OneNewDuck)
+            for child in self.OneSelectedButton.parent.children:
+                # Each Coop layout has exactly 2 children. One is Coop button which is now pressed and other is grid where we need to add new duck
+                if child != self.OneSelectedButton:
+                    child.add_widget(btn_OneNewDuck)
+                    break
         Clock.schedule_once(self.UpdateLabel, 0.1)
 
-    def btnCbk_selectOneCoop(self, instance):
-        self.OneSelectedDuckInstanceButton = None
-        self.OneSelectedCoopInstanceButton = instance
-
-    def btnCbk_selectOneDuck(self, instance):
-        self.OneSelectedCoopInstanceButton = None
-        self.OneSelectedDuckInstanceButton = instance
-
-    def btnCbk_totalducks(self, instance):
-        print 'Total Ducks are ' + str(len(self.AllDuckInstanceObjects))
-        for idx,x in enumerate(self.AllDuckInstanceObjects):
-            print str(idx) + '.',
-            x.display()
+    def btnCbk_selectOneDuckComponent(self, instance):
+        self.OneSelectedButton = instance
 
     def btnCbk_setFlyBehavior(self, instance):
-        if self.OneSelectedDuckInstanceButton is not None:
-            OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
+        if self.OneSelectedButton is not None:
             OneFlyBehavior = CollectionsManager.createNewDuckFlyBehavior(instance.text)
-            self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].setFlyBehavior(OneFlyBehavior)
+            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setFlyBehavior
+            self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setFlyBehavior(OneFlyBehavior)
             Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_setQuackBehavior(self, instance):
-        if self.OneSelectedDuckInstanceButton is not None:
-            OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
+        if self.OneSelectedButton is not None:
             OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
-            self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].setQuackBehavior(OneQuackBehavior)
+            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setQuackBehavior
+            self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setQuackBehavior(OneQuackBehavior)
             Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_performDuck(self, instance):
-        if self.OneSelectedDuckInstanceButton is not None:
-            OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
-            pre_details=self.OneSelectedDuckInstanceButton.text
+        if self.OneSelectedButton is not None:
+            pre_details=self.OneSelectedButton.text
             splitted_details = pre_details.split('\n')
-            splitted_details[1]=self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performFly()
-            splitted_details[2]=self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].performQuack()
+            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call performFly and performQuack
+            splitted_details[1]=self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].performFly()
+            splitted_details[2]=self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].performQuack()
             details = '\n'.join(splitted_details)
-            self.OneSelectedDuckInstanceButton.text = details
+            self.OneSelectedButton.text = details
             Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
     def btnCbk_removeDuck(self, instance):
-        if self.OneSelectedDuckInstanceButton is not None:
-            OneSelectedDuckInstanceIndex = self.AllDuckInstanceButtons.index(self.OneSelectedDuckInstanceButton)
-            #layout = self.AllDuckTypeLayouts[self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex].__class__.__name__[:-len('Class')]]
+        if self.OneSelectedButton is not None:
             layout = self.AllDuckTypeLayout
-            layout.remove_widget(self.OneSelectedDuckInstanceButton)
-            del self.AllDuckInstanceButtons[OneSelectedDuckInstanceIndex]
-            del self.AllDuckInstanceObjects[OneSelectedDuckInstanceIndex]
+            layout.remove_widget(self.OneSelectedButton)
+            del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+            del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
             
     def UpdateLabel(self, label):
         DuckCount = 0
-        for idx, instance in enumerate(self.AllDuckInstanceButtons):
-            pre_details=instance.text
-            splitted_details = pre_details.split('\n')
-            if 'Duck' in splitted_details[0]:
+        for button, component in self.AllDuckButtonInstanceDictionary.items():
+            if 'Duck' in component.__class__.__name__:
+                pre_details=button.text
+                splitted_details = pre_details.split('\n')
                 DuckCount += 1
-                splitted_details[1]=self.AllDuckInstanceObjects[idx].flyBehavior.getDetails()
-                splitted_details[2]=self.AllDuckInstanceObjects[idx].quackBehavior.getDetails()
-            details = '\n'.join(splitted_details)
-            instance.text = details
-        self.TD_label.text="Total Ducks = " + str(DuckCount)
+                splitted_details[1]=component.flyBehavior.getDetails()
+                splitted_details[2]=component.quackBehavior.getDetails()
+                details = '\n'.join(splitted_details)
+                button.text = details
+        self.label_totalDucks.text="Total Ducks = " + str(DuckCount)
 
     def build(self):
         self.title = 'SimUDuck'
@@ -146,11 +145,11 @@ class MyApp(App):
             dropdown_setQuackBehavior.add_widget(btn)
         btn_setQuackBehavior = Button(text='Set Quack Behavior', on_release=dropdown_setQuackBehavior.open,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         
-        btn_PerformDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        btn_performDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         
         btn_removeDuck = Button(text='Remove a Duck', on_press=self.btnCbk_removeDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
-        self.TD_label = Label(text="Total Ducks = " + str(len(self.AllDuckInstanceObjects)), size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.label_totalDucks = Label(text="Total Ducks = 0", size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         control_layout = BoxLayout(size_hint=(1, None), pos_hint={'top': 1})
 
@@ -158,9 +157,9 @@ class MyApp(App):
         control_layout.add_widget(btn_addNewCoop)
         control_layout.add_widget(btn_setFlyBehavior)
         control_layout.add_widget(btn_setQuackBehavior)
-        control_layout.add_widget(btn_PerformDuck)
+        control_layout.add_widget(btn_performDuck)
         control_layout.add_widget(btn_removeDuck)
-        control_layout.add_widget(self.TD_label)
+        control_layout.add_widget(self.label_totalDucks)
 
         self.AllDuckTypeLayout = BoxLayout(size_hint=(1, 1), pos_hint={'bottom': 1})
 
