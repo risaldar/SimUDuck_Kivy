@@ -32,4 +32,8 @@ class DuckClass(DuckComponentClass):
     def addDuckComponent(self, component):
         # a duck can't add anything else in it.
         return False
+
+    def removeDuckComponent(self, component):
+        # a duck can't add anything else in it.
+        return False
 # ----------------------------------------------

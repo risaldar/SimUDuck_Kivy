@@ -28,4 +28,11 @@ class CoopClass(DuckComponentClass):
     def addDuckComponent(self, component):
         self.ChildDuckComponents.append(component)
         return True
+
+    def removeDuckComponent(self, component):
+        if component in self.ChildDuckComponents:
+            self.ChildDuckComponents.remove(component)
+            return True
+        else:
+            return False
 # ----------------------------------------------

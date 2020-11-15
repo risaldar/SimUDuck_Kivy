@@ -96,12 +96,35 @@ class MyApp(App):
             self.OneSelectedButton.text = details
             Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
-    def btnCbk_removeDuck(self, instance):
+    def btnCbk_removeDuckComponent(self, instance):
+        def findCoop(coop_layout):
+            for button, component in self.AllDuckButtonInstanceDictionary.items():
+                if button.parent == coop_layout:
+                    return component
+
         if self.OneSelectedButton is not None:
-            layout = self.AllDuckTypeLayout
-            layout.remove_widget(self.OneSelectedButton)
+            if self.OneSelectedButton.parent == self.AllDuckTypeLayout:
+                self.AllDuckTypeLayout.remove_widget(self.OneSelectedButton)
+            elif self.OneSelectedButton.parent.parent == self.AllDuckTypeLayout:
+                self.AllDuckTypeLayout.remove_widget(self.OneSelectedButton.parent)
+            elif 'Duck' in self.OneSelectedButton.text:
+                # this could be a duck within some coop so we have to remove this duck object from coop list as well.
+                # remember that Coop Layout is actually mapped to its child button coop in dictionary
+                # also remember ducks in coop are actually inside grid layout which is inside coop layout
+                coop = findCoop(self.OneSelectedButton.parent.parent)
+                component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+                coop.removeDuckComponent(component)
+                self.OneSelectedButton.parent.remove_widget(self.OneSelectedButton)
+            else:
+                # actually parent of clicked coop button is a coop layout so we have to delete that
+                # from parent of coop layout
+                coop = findCoop(self.OneSelectedButton.parent.parent.parent)
+                component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+                coop.removeDuckComponent(component)
+                self.OneSelectedButton.parent.parent.remove_widget(self.OneSelectedButton.parent)
             del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
-            del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+            self.OneSelectedButton = None
+            Clock.schedule_once(self.UpdateLabel, 0.1)
             
     def UpdateLabel(self, label):
         DuckCount = 0
@@ -147,7 +170,7 @@ class MyApp(App):
         
         btn_performDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         
-        btn_removeDuck = Button(text='Remove a Duck', on_press=self.btnCbk_removeDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        btn_removeDuckComponent = Button(text='Remove a Duck Component', on_press=self.btnCbk_removeDuckComponent,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         self.label_totalDucks = Label(text="Total Ducks = 0", size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
@@ -158,7 +181,7 @@ class MyApp(App):
         control_layout.add_widget(btn_setFlyBehavior)
         control_layout.add_widget(btn_setQuackBehavior)
         control_layout.add_widget(btn_performDuck)
-        control_layout.add_widget(btn_removeDuck)
+        control_layout.add_widget(btn_removeDuckComponent)
         control_layout.add_widget(self.label_totalDucks)
 
         self.AllDuckTypeLayout = BoxLayout(size_hint=(1, 1), pos_hint={'bottom': 1})

@@ -54,4 +54,10 @@ class DuckComponentClass:
         # Will get a TypeError if this method is not implemented by
         # concrete class.
         pass
+
+    @abc.abstractmethod
+    def removeDuckComponent(self, component):
+        # Will get a TypeError if this method is not implemented by
+        # concrete class.
+        pass
 # ----------------------------------------------

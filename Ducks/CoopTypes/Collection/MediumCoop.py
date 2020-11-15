@@ -15,8 +15,8 @@ class MediumCoopClass(CoopClass):
         print ('I am a MediumCoop')
 
     def getColumns(self):
-        return 2
+        return 1
 
     def getRows(self):
-        return 2
+        return 4
 # ----------------------------------------------
