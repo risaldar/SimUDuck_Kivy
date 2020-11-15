@@ -102,11 +102,20 @@ class MyApp(App):
                 if button.parent == coop_layout:
                     return component
 
+        def doCleanUp(widget):
+            for child in widget.children:
+                doCleanUp(child)
+                if self.AllDuckButtonInstanceDictionary.get(child) is not None:
+                    del self.AllDuckButtonInstanceDictionary[child]
+
         if self.OneSelectedButton is not None:
             if self.OneSelectedButton.parent == self.AllDuckTypeLayout:
                 self.AllDuckTypeLayout.remove_widget(self.OneSelectedButton)
+                doCleanUp(self.OneSelectedButton)
+                del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
             elif self.OneSelectedButton.parent.parent == self.AllDuckTypeLayout:
                 self.AllDuckTypeLayout.remove_widget(self.OneSelectedButton.parent)
+                doCleanUp(self.OneSelectedButton.parent)
             elif 'Duck' in self.OneSelectedButton.text:
                 # this could be a duck within some coop so we have to remove this duck object from coop list as well.
                 # remember that Coop Layout is actually mapped to its child button coop in dictionary
@@ -115,6 +124,8 @@ class MyApp(App):
                 component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
                 coop.removeDuckComponent(component)
                 self.OneSelectedButton.parent.remove_widget(self.OneSelectedButton)
+                doCleanUp(self.OneSelectedButton)
+                del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
             else:
                 # actually parent of clicked coop button is a coop layout so we have to delete that
                 # from parent of coop layout
@@ -122,7 +133,7 @@ class MyApp(App):
                 component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
                 coop.removeDuckComponent(component)
                 self.OneSelectedButton.parent.parent.remove_widget(self.OneSelectedButton.parent)
-            del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+                doCleanUp(self.OneSelectedButton.parent)
             self.OneSelectedButton = None
             Clock.schedule_once(self.UpdateLabel, 0.1)
             
