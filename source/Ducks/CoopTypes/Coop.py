@@ -1,8 +1,10 @@
 
 from DuckComponent import DuckComponentClass
+from CoopIterator import CoopIteratorClass
 
 # ========================================= Coop Class ===================================#
 class CoopClass(DuckComponentClass):
+    CoopIterator = None
     ChildDuckComponents = None
 
     def __init__(self):
@@ -35,4 +37,8 @@ class CoopClass(DuckComponentClass):
             return True
         else:
             return False
+
+    def createIterator(self):
+        self.CoopIterator = CoopIteratorClass(iter(self.ChildDuckComponents))
+        return self.CoopIterator
 # ----------------------------------------------

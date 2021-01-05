@@ -64,4 +64,10 @@ class DuckComponentClass:
     def getDuckComponentDecoration(self):
         # default decoration is none
         return None
+
+    @abc.abstractmethod
+    def createIterator(self):
+        # Will get a TypeError if this method is not implemented by
+        # concrete class.
+        pass
 # ----------------------------------------------

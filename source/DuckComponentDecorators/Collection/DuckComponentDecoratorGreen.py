@@ -46,6 +46,9 @@ class DuckComponentDecoratorGreenClass(DuckComponentDecoratorClass):
         # Forward this request to wrapped object
         return self.WrappedDuckComponent.removeDuckComponent(component)
 
+    def createIterator(self):
+        return self.WrappedDuckComponent.createIterator()
+
     def getDuckComponentDecoration(self):
         colors = [[0, 255, 0, 1]]
         if self.WrappedDuckComponent is not None and self.WrappedDuckComponent.getDuckComponentDecoration() is not None:

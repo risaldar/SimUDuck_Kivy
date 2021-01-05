@@ -1,5 +1,6 @@
 
 from DuckComponent import DuckComponentClass
+from DuckIterator import DuckIteratorClass
 
 # ========================================= Duck Class ===================================#
 class DuckClass(DuckComponentClass):
@@ -36,4 +37,7 @@ class DuckClass(DuckComponentClass):
     def removeDuckComponent(self, component):
         # a duck can't add anything else in it.
         return False
+
+    def createIterator(self):
+        return DuckIteratorClass()
 # ----------------------------------------------

@@ -4,6 +4,7 @@ from time import time
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.graphics import Rectangle, Color
+from kivy.graphics.texture import Texture
 from kivy.uix.button import Button
 from kivy.uix.widget import Widget
 from kivy.uix.label import Label
@@ -78,37 +79,75 @@ class MyApp(App):
             self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setFlyBehavior(OneFlyBehavior)
             Clock.schedule_once(self.UpdateLabel, 0.1)
 
-    def btnCbk_addDecoration(self, instance):
+    def _findCoop(self, coop_layout):
+        for button, component in self.AllDuckButtonInstanceDictionary.items():
+            if button.parent == coop_layout:
+                return component
 
+    def _doCleanUp(self, widget):
+        for child in widget.children:
+            self._doCleanUp(child)
+            if self.AllDuckButtonInstanceDictionary.get(child) is not None:
+                del self.AllDuckButtonInstanceDictionary[child]
+
+    # redraw is needed since everything inside canvas needs to be readjusted if size or position of containing layout changes
+    def _redraw(self, obj, value):
+        for child in obj.canvas.children:
+            if type(child) is Rectangle:
+                child.pos = obj.pos
+                child.size = obj.size
+
+    def _addDecoration(self, component, button, color):
+        wrapped_widget = button
+        if button.parent.id == 'Coop':
+            wrapped_widget = wrapped_widget.parent
+            # comment return if u want to decorate Coop as a whole as well
+            return
+        widget_index = wrapped_widget.parent.children.index(wrapped_widget)
+        widget_parent = wrapped_widget.parent
+        widget_parent.remove_widget(wrapped_widget)
+
+        OneNewDuckComponentDecorator = CollectionsManager.createNewDuckComponentDecorator(color, component)
+
+        # Add a container layout to selected button as per decorated color
+        boxlayout_OneDuckComponentDecorator = BoxLayout(id='Decorator', padding=[10, 10, 10, 10], orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
+        decoration_color = OneNewDuckComponentDecorator.getDuckComponentDecoration()[0]
+        boxlayout_OneDuckComponentDecorator.canvas.add(Color(rgba=decoration_color))
+        boxlayout_OneDuckComponentDecorator.canvas.add(Rectangle(pos=wrapped_widget.pos, size=wrapped_widget.size))
+        boxlayout_OneDuckComponentDecorator.add_widget(wrapped_widget)
+        boxlayout_OneDuckComponentDecorator.bind(pos=self._redraw, size=self._redraw)
+        widget_parent.add_widget(boxlayout_OneDuckComponentDecorator, index = widget_index)
+        # Actual benefit of Decoration Pattern can be seen here, We replace original component instance by decorated component instance
+        OneOldDuckComponent = self.AllDuckButtonInstanceDictionary[button]
+        self.AllDuckButtonInstanceDictionary[button] = OneNewDuckComponentDecorator
+
+        # here we update list inside a Coop Composite Class where its sub elements are stored
+        # we should store the decorated element instead of original one.
+        # - for this we search for widget_grandparent which can only be Coop or AllDuckTypeLayout
+        widget_grandparent = widget_parent.parent
+        while widget_grandparent.id != 'Coop' and widget_grandparent.id != 'AllDuckTypeLayout':
+            widget_grandparent = widget_grandparent.parent
+        if widget_grandparent.id == 'Coop':
+            for child in widget_grandparent.children:
+                if type(child) is Button:
+                    for index, x in enumerate(self.AllDuckButtonInstanceDictionary[child].ChildDuckComponents):
+                        if x == OneOldDuckComponent:
+                            self.AllDuckButtonInstanceDictionary[child].ChildDuckComponents[index] = OneNewDuckComponentDecorator
+                            break
+
+    def btnCbk_addDecoration(self, instance):
         if self.OneSelectedButton is not None:
             component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
-            OneNewDuckComponentDecorator = CollectionsManager.createNewDuckComponentDecorator(instance.text, component)
-            wrapped_widget = self.OneSelectedButton
-            if self.OneSelectedButton.parent.id == 'Coop':
-                wrapped_widget = wrapped_widget.parent
-            widget_index = wrapped_widget.parent.children.index(wrapped_widget)
-            widget_parent = wrapped_widget.parent
-            widget_parent.remove_widget(wrapped_widget)
+            self._addDecoration(component, self.OneSelectedButton, instance.text)
+            iterator = component.createIterator()
+            while True:
+                try:
+                    child_component = iterator.next()
+                    child_button = [key for key, value in self.AllDuckButtonInstanceDictionary.iteritems() if value == child_component][0]
+                    self._addDecoration(child_component, child_button, instance.text)
+                except:
+                    break
 
-            # redraw is needed since everything inside canvas needs to be readjusted if size or position of containing layout changes
-            def redraw(obj, value):
-                print 'redraw'
-                print value
-                for child in obj.canvas.children:
-                    if type(child) is Rectangle:
-                        print type(child)
-                        child.pos=obj.pos
-                        child.size=obj.size
-
-            # Add a container layout to selected button as per decorated color
-            boxlayout_OneDuckComponentDecorator = BoxLayout(id='Decorator', padding=[10, 10, 10, 10], orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
-            boxlayout_OneDuckComponentDecorator.canvas.add(Color(rgba=OneNewDuckComponentDecorator.getDuckComponentDecoration()[0]))
-            boxlayout_OneDuckComponentDecorator.canvas.add(Rectangle(pos=wrapped_widget.pos, size=wrapped_widget.size))
-            boxlayout_OneDuckComponentDecorator.add_widget(wrapped_widget)
-            boxlayout_OneDuckComponentDecorator.bind(pos=redraw, size=redraw)
-            widget_parent.add_widget(boxlayout_OneDuckComponentDecorator, index = widget_index)
-            # Actual benefit of Decoration Pattern can be seen here, We replace original component instance by decorated component instance
-            self.AllDuckButtonInstanceDictionary[self.OneSelectedButton] = OneNewDuckComponentDecorator
             Clock.schedule_once(self.UpdateLabel, 0.1)
 
     def btnCbk_setQuackBehavior(self, instance):
@@ -130,17 +169,6 @@ class MyApp(App):
             Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
     def btnCbk_removeDuckComponent(self, instance):
-        def findCoop(coop_layout):
-            for button, component in self.AllDuckButtonInstanceDictionary.items():
-                print component
-                if button.parent == coop_layout:
-                    return component
-
-        def doCleanUp(widget):
-            for child in widget.children:
-                doCleanUp(child)
-                if self.AllDuckButtonInstanceDictionary.get(child) is not None:
-                    del self.AllDuckButtonInstanceDictionary[child]
 
         if self.OneSelectedButton is not None:
             if self.OneSelectedButton.id == 'Duck':
@@ -148,23 +176,16 @@ class MyApp(App):
                 while widget_parent.parent.id == 'Decorator':
                     widget_parent = widget_parent.parent
             else:
-                print '\n\nself.OneSelectedButton.parent '
-                print self.OneSelectedButton.parent.id
                 widget_parent = self.OneSelectedButton.parent    
                 while widget_parent.parent.id == 'Decorator':
-                    print 'Decorator'
                     widget_parent = widget_parent.parent
-                print widget_parent.parent.id
-                print widget_parent.parent.parent.id
-                print widget_parent.parent.__class__.__name__
-                print widget_parent.parent.parent.__class__.__name__
             if widget_parent.parent.parent is not None and widget_parent.parent.parent.id == 'Coop':
                 # inside a coop so remove it from its children list
-                coop = findCoop(widget_parent.parent.parent)
+                coop = self._findCoop(widget_parent.parent.parent)
                 component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
                 coop.removeDuckComponent(component)
             widget_parent.parent.remove_widget(widget_parent)
-            doCleanUp(widget_parent)
+            self._doCleanUp(widget_parent)
             if self.AllDuckButtonInstanceDictionary.get(self.OneSelectedButton) is not None:
                 del self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
             self.OneSelectedButton = None
