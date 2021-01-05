@@ -12,46 +12,49 @@ from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
 
 AllCoopTypes = []
 AllDuckTypes = []
-AllDuckColors = []
+AllDuckComponentDecorators = []
 AllDuckFlyBehaviors = []
 AllDuckQauckBehaviors = []
 
-def getCollectionsRootPath(CollectionName):
+def getDuckCollectionsRootPath(CollectionName):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Ducks\\' + CollectionName + '\Collection')
+
+def getDecorationCollectionsRootPath(CollectionName):
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), CollectionName + '\Collection')
 
 
 def loadCollections():
     global AllCoopTypes
     global AllDuckTypes
-    global AllDuckColors
+    global AllDuckComponentDecorators
     global AllDuckFlyBehaviors
     global AllDuckQauckBehaviors
     AllCoopTypes = []
     AllDuckTypes = []
-    AllDuckColors = []
+    AllDuckComponentDecorators = []
     AllDuckFlyBehaviors = []
     AllDuckQauckBehaviors = []
     # walk and collect classes
-    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('CoopTypes')):
+    for dirpath, dirnames, filenames in os.walk(getDuckCollectionsRootPath('CoopTypes')):
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllCoopTypes.append(filename[:-3])
-    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('DuckTypes')):
+    for dirpath, dirnames, filenames in os.walk(getDuckCollectionsRootPath('DuckTypes')):
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllDuckTypes.append(filename[:-3])
-    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('DuckColors')):
-        for filename in filenames:
-            if filename != '__init__.py' and filename.endswith('.py'):
-                AllDuckColors.append(filename[:-3])
-    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('DuckFlyBehaviors')):
+    for dirpath, dirnames, filenames in os.walk(getDuckCollectionsRootPath('DuckFlyBehaviors')):
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllDuckFlyBehaviors.append(filename[:-3])
-    for dirpath, dirnames, filenames in os.walk(getCollectionsRootPath('DuckQuackBehaviors')):
+    for dirpath, dirnames, filenames in os.walk(getDuckCollectionsRootPath('DuckQuackBehaviors')):
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllDuckQauckBehaviors.append(filename[:-3])
+    for dirpath, dirnames, filenames in os.walk(getDecorationCollectionsRootPath('DuckComponentDecorators')):
+        for filename in filenames:
+            if filename != '__init__.py' and filename.endswith('.py'):
+                AllDuckComponentDecorators.append(filename[len('DuckComponentDecorator'):-3])
 
 def createNewCoop(CoopTypeName):
     Module = importlib.import_module('Ducks.CoopTypes.Collection.' + CoopTypeName)
@@ -65,12 +68,6 @@ def createNewDuck(DuckTypeName):
     OneDuck = DuckTypeClass()
     return OneDuck
 
-def createNewDuckColor(DuckColorName):
-    Module = importlib.import_module('Ducks.DuckColors.Collection.' + DuckColorName)
-    DuckColorClass = getattr(Module, DuckColorName + 'Class')
-    OneDuckColor = DuckColorClass()
-    return OneDuckColor
-
 def createNewDuckFlyBehavior(DuckFlyBehaviorName):
     Module = importlib.import_module('Ducks.DuckFlyBehaviors.Collection.' + DuckFlyBehaviorName)
     DuckFlyBehaviorClass = getattr(Module, DuckFlyBehaviorName + 'Class')
@@ -83,6 +80,12 @@ def createNewDuckQuackBehavior(DuckQuackBehaviorName):
     OneDuckQuackBehavior = DuckQuackBehaviorClass()
     return OneDuckQuackBehavior
 
+def createNewDuckComponentDecorator(DuckComponentDecoratorName, component):
+    Module = importlib.import_module('DuckComponentDecorators.Collection.DuckComponentDecorator' + DuckComponentDecoratorName)
+    DuckComponentDecoratorClass = getattr(Module, 'DuckComponentDecorator' + DuckComponentDecoratorName + 'Class')
+    OneDuckComponentDecorator = DuckComponentDecoratorClass(component)
+    return OneDuckComponentDecorator
+
 def getAllCoopTypes():
     global AllCoopTypes
     return AllCoopTypes
@@ -91,10 +94,6 @@ def getAllDuckTypes():
     global AllDuckTypes
     return AllDuckTypes
 
-def getAllDuckColors():
-    global AllDuckColors
-    return AllDuckColors
-
 def getAllDuckFlyBehaviors():
     global AllDuckFlyBehaviors
     return AllDuckFlyBehaviors
@@ -102,4 +101,12 @@ def getAllDuckFlyBehaviors():
 def getAllDuckQuackBehaviors():
     global AllDuckQauckBehaviors
     return AllDuckQauckBehaviors
+
+def getAllDuckComponentDecorators():
+    global AllDuckComponentDecorators
+    return AllDuckComponentDecorators
+
+def getAllDuckDecorations():
+    return ['Red', 'Blue', 'Yellow']
+
 # ----------------------------------------------
