@@ -31,6 +31,13 @@ class MyApp(App):
     OneSelectedButton = None
     label_totalDucks = None
 
+    root = None
+
+    def _print_widgets(self, parent):
+        print parent
+        for child in parent.children:
+            self._print_widgets(child)
+
     def btnCbk_addNewCoop(self, instance):
         CoopTypeName = instance.text
         OneNewCoop = CollectionsManager.createNewCoop(CoopTypeName)
@@ -51,6 +58,10 @@ class MyApp(App):
                     child.add_widget(boxlayout_OneNewCoop)
                     break
         Clock.schedule_once(self.UpdateLabel, 0.1)
+
+    def btnCbk_escape(self, instance):
+        if self.OneSelectedButton is not None:
+            self.OneSelectedButton = None
 
     def btnCbk_addNewDuck(self, instance):
         DuckTypeName = instance.text
@@ -78,6 +89,40 @@ class MyApp(App):
             # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setFlyBehavior
             self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setFlyBehavior(OneFlyBehavior)
             Clock.schedule_once(self.UpdateLabel, 0.1)
+
+    def btnCbk_setQuackBehavior(self, instance):
+        if self.OneSelectedButton is not None:
+            OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
+            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setQuackBehavior
+            self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setQuackBehavior(OneQuackBehavior)
+            Clock.schedule_once(self.UpdateLabel, 0.1)
+
+    def _performDuck(self, component, button):
+            pre_details=button.text
+            splitted_details = pre_details.split('\n')
+            print splitted_details
+            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call performFly and performQuack
+            splitted_details[1]=component.performFly()
+            splitted_details[2]=component.performQuack()
+            details = '\n'.join(splitted_details)
+            button.text = details
+
+    def btnCbk_performDuck(self, instance):
+        if self.OneSelectedButton is not None:
+            button = self.OneSelectedButton
+            component = self.AllDuckButtonInstanceDictionary[self.OneSelectedButton]
+            if button.id == 'Duck':
+                self._performDuck(component, button)
+            else:
+                iterator = component.createIterator()
+                while True:
+                    try:
+                        child_component = iterator.next()
+                        child_button = [key for key, value in self.AllDuckButtonInstanceDictionary.iteritems() if value == child_component][0]
+                        self._performDuck(child_component, child_button)
+                    except:
+                        break
+            Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
     def _findCoop(self, coop_layout):
         for button, component in self.AllDuckButtonInstanceDictionary.items():
@@ -150,26 +195,7 @@ class MyApp(App):
                     self._addDecoration(child_component, child_button, instance.text)
                 except:
                     break
-
             Clock.schedule_once(self.UpdateLabel, 0.1)
-
-    def btnCbk_setQuackBehavior(self, instance):
-        if self.OneSelectedButton is not None:
-            OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
-            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setQuackBehavior
-            self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].setQuackBehavior(OneQuackBehavior)
-            Clock.schedule_once(self.UpdateLabel, 0.1)
-
-    def btnCbk_performDuck(self, instance):
-        if self.OneSelectedButton is not None:
-            pre_details=self.OneSelectedButton.text
-            splitted_details = pre_details.split('\n')
-            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call performFly and performQuack
-            splitted_details[1]=self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].performFly()
-            splitted_details[2]=self.AllDuckButtonInstanceDictionary[self.OneSelectedButton].performQuack()
-            details = '\n'.join(splitted_details)
-            self.OneSelectedButton.text = details
-            Clock.schedule_once(self.UpdateLabel, 2) # 2sec action
 
     def btnCbk_removeDuckComponent(self, instance):
 
@@ -219,6 +245,8 @@ class MyApp(App):
         self.title = 'SimUDuck'
 
         CollectionsManager.loadCollections()
+        
+        btn_escape = Button(text='Escape', on_press=self.btnCbk_escape, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         dropdown_addNewDuck = DropDown()
         for OneDuckTypeName in CollectionsManager.getAllDuckTypes():
@@ -238,32 +266,41 @@ class MyApp(App):
             dropdown_setFlyBehavior.add_widget(btn)
         btn_setFlyBehavior = Button(text='Set Fly Behavior', on_release=dropdown_setFlyBehavior.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
-        dropdown_addDecoration = DropDown()
-        for OneDuckComponentDecorationName in CollectionsManager.getAllDuckComponentDecorators():
-            btn = Button(text=OneDuckComponentDecorationName, color=[0, 0, 0, 1], on_press=self.btnCbk_addDecoration, size_hint_y=None)
-            btn.background_color = CollectionsManager.createNewDuckComponentDecorator(OneDuckComponentDecorationName, None).getDuckComponentDecoration()[0]
-            dropdown_addDecoration.add_widget(btn)
-        btn_addDecoration = Button(text='Add Decoration', on_release=dropdown_addDecoration.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
-    
         dropdown_setQuackBehavior = DropDown()
         for OneDuckQuackBehaviorName in CollectionsManager.getAllDuckQuackBehaviors():
             btn = Button(text=OneDuckQuackBehaviorName, on_press=self.btnCbk_setQuackBehavior, size_hint_y=None)
             dropdown_setQuackBehavior.add_widget(btn)
         btn_setQuackBehavior = Button(text='Set Quack Behavior', on_release=dropdown_setQuackBehavior.open,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         
+        dropdown_addDecoration = DropDown()
+        for OneDuckComponentDecorationName in CollectionsManager.getAllDuckComponentDecorators():
+            btn = Button(text=OneDuckComponentDecorationName, color=[0, 0, 0, 1], on_press=self.btnCbk_addDecoration, size_hint_y=None)
+            btn.background_color = CollectionsManager.createNewDuckComponentDecorator(OneDuckComponentDecorationName, None).getDuckComponentDecoration()[0]
+            dropdown_addDecoration.add_widget(btn)
+        btn_addDecoration = Button(text='Add Decoration', on_release=dropdown_addDecoration.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        
+        dropdown_addDecoration2 = DropDown()
+        for OneDuckComponentDecorationName in CollectionsManager.getAllDuckComponentDecorators():
+            btn = Button(text=OneDuckComponentDecorationName, color=[0, 0, 0, 1], on_press=self.btnCbk_addDecoration, size_hint_y=None)
+            btn.background_color = CollectionsManager.createNewDuckComponentDecorator(OneDuckComponentDecorationName, None).getDuckComponentDecoration()[0]
+            dropdown_addDecoration2.add_widget(btn)
+        btn_addDecoration2 = Button(text='Add Decoration', on_release=dropdown_addDecoration2.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        
         btn_performDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         
-        btn_removeDuckComponent = Button(text='Remove a Duck Component', on_press=self.btnCbk_removeDuckComponent,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        btn_removeDuckComponent = Button(text='Remove', on_press=self.btnCbk_removeDuckComponent,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         self.label_totalDucks = Label(text="Total Ducks = 0", color=[0, 0, 0, 1], size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         control_layout = BoxLayout(size_hint=(1, None), pos_hint={'top': 1})
 
+        control_layout.add_widget(btn_escape)
         control_layout.add_widget(btn_addNewDuck)
         control_layout.add_widget(btn_addNewCoop)
         control_layout.add_widget(btn_setFlyBehavior)
-        control_layout.add_widget(btn_addDecoration)
         control_layout.add_widget(btn_setQuackBehavior)
+        control_layout.add_widget(btn_addDecoration)
+        control_layout.add_widget(btn_addDecoration2)
         control_layout.add_widget(btn_performDuck)
         control_layout.add_widget(btn_removeDuckComponent)
         control_layout.add_widget(self.label_totalDucks)
@@ -274,7 +311,9 @@ class MyApp(App):
         root.add_widget(control_layout)
         root.add_widget(self.AllDuckTypeLayout)
 
-        Window.clearcolor = (1, 1, 1, 1);
+        self.root = root
+
+        Window.clearcolor = (1, 1, 1, 1)
 
         return root
 
