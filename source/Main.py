@@ -121,6 +121,9 @@ class MyApp(App):
         OneOldDuckComponent = self.AllDuckButtonInstanceDictionary[button]
         self.AllDuckButtonInstanceDictionary[button] = OneNewDuckComponentDecorator
 
+        if widget_parent.id == 'AllDuckTypeLayout':
+            return
+
         # here we update list inside a Coop Composite Class where its sub elements are stored
         # we should store the decorated element instead of original one.
         # - for this we search for widget_grandparent which can only be Coop or AllDuckTypeLayout
