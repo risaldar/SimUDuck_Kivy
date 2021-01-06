@@ -300,7 +300,7 @@ class MyApp(App):
         control_layout.add_widget(btn_setFlyBehavior)
         control_layout.add_widget(btn_setQuackBehavior)
         control_layout.add_widget(btn_addDecoration)
-        control_layout.add_widget(btn_addDecoration2)
+        #control_layout.add_widget(btn_addDecoration2)
         control_layout.add_widget(btn_performDuck)
         control_layout.add_widget(btn_removeDuckComponent)
         control_layout.add_widget(self.label_totalDucks)
