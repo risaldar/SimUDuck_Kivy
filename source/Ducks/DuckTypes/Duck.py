@@ -10,6 +10,9 @@ class DuckClass(DuckComponentClass):
     def __init__(self):
         print 'initialized a new Duck'
 
+    def createIterator(self):
+        return DuckIteratorClass()
+        
     def setFlyBehavior(self, behavior):
         self.flyBehavior = behavior
 
@@ -38,6 +41,4 @@ class DuckClass(DuckComponentClass):
         # a duck can't add anything else in it.
         return False
 
-    def createIterator(self):
-        return DuckIteratorClass()
 # ----------------------------------------------

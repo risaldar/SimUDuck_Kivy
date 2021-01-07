@@ -14,6 +14,12 @@ class DuckComponentDecoratorGreenClass(DuckComponentDecoratorClass):
         self.WrappedDuckComponent = component
         print 'Initialized a new DuckComponentDecoratorGreen'
 
+    def getDuckComponentDecoration(self):
+        colors = [[0, 255, 0, 1]]
+        if self.WrappedDuckComponent is not None and self.WrappedDuckComponent.getDuckComponentDecoration() is not None:
+            colors.append(self.WrappedDuckComponent.getDuckComponentDecoration())
+        return colors
+
     def setFlyBehavior(self, behavior):
         # Forward this request to wrapped object
         self.WrappedDuckComponent.setFlyBehavior(behavior)
@@ -49,9 +55,4 @@ class DuckComponentDecoratorGreenClass(DuckComponentDecoratorClass):
     def createIterator(self):
         return self.WrappedDuckComponent.createIterator()
 
-    def getDuckComponentDecoration(self):
-        colors = [[0, 255, 0, 1]]
-        if self.WrappedDuckComponent is not None and self.WrappedDuckComponent.getDuckComponentDecoration() is not None:
-            colors.append(self.WrappedDuckComponent.getDuckComponentDecoration())
-        return colors
 # ----------------------------------------------

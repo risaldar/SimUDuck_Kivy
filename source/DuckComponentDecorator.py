@@ -16,6 +16,18 @@ class DuckComponentDecoratorClass(DuckComponentClass):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
+    def getDuckComponentDecoration(self, component):
+        # Will get a TypeError if this method is not implemented by
+        # concrete class.
+        pass
+
+    @abc.abstractmethod
+    def createIterator(self):
+        # Will get a TypeError if this method is not implemented by
+        # concrete class.
+        pass
+
+    @abc.abstractmethod
     def setFlyBehavior(self, behavior):
         # Will get a TypeError if this method is not implemented by
         # concrete class.
@@ -63,15 +75,4 @@ class DuckComponentDecoratorClass(DuckComponentClass):
         # concrete class.
         pass
 
-    @abc.abstractmethod
-    def getDuckComponentDecoration(self, component):
-        # Will get a TypeError if this method is not implemented by
-        # concrete class.
-        pass
-
-    @abc.abstractmethod
-    def createIterator(self):
-        # Will get a TypeError if this method is not implemented by
-        # concrete class.
-        pass
 # ----------------------------------------------
