@@ -31,6 +31,12 @@ class CoopClass(DuckComponentClass):
         self.ChildDuckComponents.append(component)
         return True
 
+    def updateDuckComponent(self, component_old, component_new):
+        component_index = self.ChildDuckComponents.index(component_old)
+        self.ChildDuckComponents.remove(component_old)
+        self.ChildDuckComponents.insert(component_index, component_new)
+        return True
+
     def removeDuckComponent(self, component):
         if component in self.ChildDuckComponents:
             self.ChildDuckComponents.remove(component)

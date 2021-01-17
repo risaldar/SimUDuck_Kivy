@@ -56,6 +56,12 @@ class DuckComponentClass:
         pass
 
     @abc.abstractmethod
+    def updateDuckComponent(self, component_old, component_new):
+        # Will get a TypeError if this method is not implemented by
+        # concrete class.
+        pass
+
+    @abc.abstractmethod
     def removeDuckComponent(self, component):
         # Will get a TypeError if this method is not implemented by
         # concrete class.

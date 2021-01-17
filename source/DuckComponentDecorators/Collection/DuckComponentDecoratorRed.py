@@ -42,6 +42,10 @@ class DuckComponentDecoratorRedClass(DuckComponentDecoratorClass):
         # Forward this request to wrapped object
         return self.WrappedDuckComponent.addDuckComponent(component)
 
+    def updateDuckComponent(self, component_old, component_new):
+        # Forward this request to wrapped object
+        return self.WrappedDuckComponent.updateDuckComponent(component_old, component_new)
+
     def removeDuckComponent(self, component):
         # Forward this request to wrapped object
         return self.WrappedDuckComponent.removeDuckComponent(component)
