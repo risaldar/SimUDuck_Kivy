@@ -27,6 +27,7 @@ from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
 # ====================================== Main ==============================#
 class MyApp(App):
 
+    AllControlWidgets = []
     AllDuckCreateButtons = {}
     AllDuckTypeLayout = None
     AllDuckTypeLayout_ChildDuckComponents = []
@@ -242,54 +243,64 @@ class MyApp(App):
         CollectionsManager.loadCollections()
         
         btn_escape = Button(text='Escape', on_press=self.btnCbk_escape, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_escape)
 
         dropdown_addNewDuck = DropDown()
+        self.AllControlWidgets.append(dropdown_addNewDuck)
         for OneDuckTypeName in CollectionsManager.getAllDuckTypes():
             btn = Button(text=OneDuckTypeName, on_press=self.btnCbk_addNewDuck, size_hint_y=None)
             dropdown_addNewDuck.add_widget(btn)
+            self.AllControlWidgets.append(btn)
         btn_addNewDuck = Button(text='Add a new Duck', on_release=dropdown_addNewDuck.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_addNewDuck)
 
         dropdown_addNewCoop = DropDown()
+        self.AllControlWidgets.append(dropdown_addNewCoop)
         for OneCoopTypeName in CollectionsManager.getAllCoopTypes():
             btn = Button(text=OneCoopTypeName, on_press=self.btnCbk_addNewCoop, size_hint_y=None)
             dropdown_addNewCoop.add_widget(btn)
+            self.AllControlWidgets.append(btn)
         btn_addNewCoop = Button(text='Add a new Coop', on_release=dropdown_addNewCoop.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_addNewCoop)
     
         dropdown_setFlyBehavior = DropDown()
+        self.AllControlWidgets.append(dropdown_setFlyBehavior)
         for OneDuckFlyBehaviorName in CollectionsManager.getAllDuckFlyBehaviors():
             btn = Button(text=OneDuckFlyBehaviorName, on_press=self.btnCbk_setFlyBehavior, size_hint_y=None)
             dropdown_setFlyBehavior.add_widget(btn)
+            self.AllControlWidgets.append(btn)
         btn_setFlyBehavior = Button(text='Set Fly Behavior', on_release=dropdown_setFlyBehavior.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_setFlyBehavior)
 
         dropdown_setQuackBehavior = DropDown()
+        self.AllControlWidgets.append(dropdown_setQuackBehavior)
         for OneDuckQuackBehaviorName in CollectionsManager.getAllDuckQuackBehaviors():
             btn = Button(text=OneDuckQuackBehaviorName, on_press=self.btnCbk_setQuackBehavior, size_hint_y=None)
             dropdown_setQuackBehavior.add_widget(btn)
+            self.AllControlWidgets.append(btn)
         btn_setQuackBehavior = Button(text='Set Quack Behavior', on_release=dropdown_setQuackBehavior.open,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_setQuackBehavior)
         
         dropdown_addDecoration = DropDown()
+        self.AllControlWidgets.append(dropdown_addDecoration)
         for OneDuckComponentDecorationName in CollectionsManager.getAllDuckComponentDecorators():
             btn = Button(text=OneDuckComponentDecorationName, color=[0, 0, 0, 1], on_press=self.btnCbk_addDecoration, size_hint_y=None)
             btn.background_color = CollectionsManager.createNewDuckComponentDecorator(OneDuckComponentDecorationName, None).getDuckComponentDecoration()[0]
             dropdown_addDecoration.add_widget(btn)
+            self.AllControlWidgets.append(btn)
         btn_addDecoration = Button(text='Add Decoration', on_release=dropdown_addDecoration.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
-        
-        dropdown_addDecoration2 = DropDown()
-        for OneDuckComponentDecorationName in CollectionsManager.getAllDuckComponentDecorators():
-            btn = Button(text=OneDuckComponentDecorationName, color=[0, 0, 0, 1], on_press=self.btnCbk_addDecoration, size_hint_y=None)
-            btn.background_color = CollectionsManager.createNewDuckComponentDecorator(OneDuckComponentDecorationName, None).getDuckComponentDecoration()[0]
-            dropdown_addDecoration2.add_widget(btn)
-        btn_addDecoration2 = Button(text='Add Decoration', on_release=dropdown_addDecoration2.open, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
-        
-        btn_redrawDuckComponents = Button(text='Redraw', on_press=self.btnCbk_redrawDuckComponents,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_addDecoration)
 
         btn_performDuck = Button(text='Perform Duck', on_press=self.btnCbk_performDuck,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
-        
+        self.AllControlWidgets.append(btn_performDuck)
+
         btn_removeDuckComponent = Button(text='Remove', on_press=self.btnCbk_removeDuckComponent,size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_removeDuckComponent)
 
         self.label_totalDucks = Label(text="Total Ducks = 0", color=[0, 0, 0, 1], size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
 
         control_layout = BoxLayout(size_hint=(1, None), pos_hint={'top': 1})
+        self.AllControlWidgets.append(control_layout)
 
         control_layout.add_widget(btn_escape)
         control_layout.add_widget(btn_addNewDuck)
@@ -297,8 +308,6 @@ class MyApp(App):
         control_layout.add_widget(btn_setFlyBehavior)
         control_layout.add_widget(btn_setQuackBehavior)
         control_layout.add_widget(btn_addDecoration)
-        #control_layout.add_widget(btn_addDecoration2)
-        control_layout.add_widget(btn_redrawDuckComponents)
         control_layout.add_widget(btn_performDuck)
         control_layout.add_widget(btn_removeDuckComponent)
         control_layout.add_widget(self.label_totalDucks)
