@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<AllDuckTypeLayout_ChildDuckComponents>
+   <DuckComponentDecoratorGreen>
+      <DuckComponentDecoratorBlue>
+         <DecoyDuck flyBehavior="FlyNoWay" quackBehavior="MuteQuack"/>
+      </DuckComponentDecoratorBlue>
+   </DuckComponentDecoratorGreen>
+   <ExtraLargeCoop>
+      <HorizontalCoop>
+         <ReadheadDuck flyBehavior="FlyWithWings" quackBehavior="Quack"/>
+         <DuckComponentDecoratorGreen>
+            <DecoyDuck flyBehavior="FlyNoWay" quackBehavior="MuteQuack"/>
+         </DuckComponentDecoratorGreen>
+      </HorizontalCoop>
+      <MediumCoop>
+         <DuckComponentDecoratorBlue>
+            <DuckComponentDecoratorYellow>
+               <DuckComponentDecoratorRed>
+                  <MallardDuck flyBehavior="FlyWithWings" quackBehavior="Quack"/>
+               </DuckComponentDecoratorRed>
+            </DuckComponentDecoratorYellow>
+         </DuckComponentDecoratorBlue>
+         <DuckComponentDecoratorBlue>
+            <DuckComponentDecoratorYellow>
+               <DuckComponentDecoratorRed>
+                  <ReadheadDuck flyBehavior="FlyWithWings" quackBehavior="Quack"/>
+               </DuckComponentDecoratorRed>
+            </DuckComponentDecoratorYellow>
+         </DuckComponentDecoratorBlue>
+      </MediumCoop>
+   </ExtraLargeCoop>
+   <LargeCoop/>
+</AllDuckTypeLayout_ChildDuckComponents>

@@ -43,6 +43,18 @@ class MyApp(App):
         for child in parent.children:
             self._print_widgets(child)
 
+    def btnCbk_new(self, instance):
+        CollectionsManager.createNewDatabase()
+        for component in self.AllDuckTypeLayout_ChildDuckComponents:
+            del component
+        self.AllDuckTypeLayout_ChildDuckComponents = []
+        self.OneSelectedDuckComponent = None
+        self.redrawAllDuckComponents(None)
+
+    def btnCbk_save(self, instance):
+        CollectionsManager.saveDatabase(self.AllDuckTypeLayout_ChildDuckComponents)
+        self.OneSelectedDuckComponent = None
+
     def btnCbk_escape(self, instance):
         self.OneSelectedDuckComponent = None
 
@@ -51,14 +63,14 @@ class MyApp(App):
         # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
         if self.OneSelectedDuckComponent is None or self.OneSelectedDuckComponent.addDuckComponent(OneNewCoop) == False:
             self.AllDuckTypeLayout_ChildDuckComponents.append(OneNewCoop)
-        self.btnCbk_redrawDuckComponents(None)
+        self.redrawAllDuckComponents(None)
 
     def btnCbk_addNewDuck(self, instance):
         OneNewDuck = CollectionsManager.createNewDuck(instance.text)
         # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
         if self.OneSelectedDuckComponent is None or self.OneSelectedDuckComponent.addDuckComponent(OneNewDuck) == False:
             self.AllDuckTypeLayout_ChildDuckComponents.append(OneNewDuck)
-        self.btnCbk_redrawDuckComponents(None)
+        self.redrawAllDuckComponents(None)
 
     def btnCbk_selectOneDuckComponent(self, instance):
         self.OneSelectedDuckComponent = self.AllDuckButtonInstanceDictionary[instance]
@@ -68,14 +80,14 @@ class MyApp(App):
             OneFlyBehavior = CollectionsManager.createNewDuckFlyBehavior(instance.text)
             # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setFlyBehavior
             self.OneSelectedDuckComponent.setFlyBehavior(OneFlyBehavior)
-            self.btnCbk_redrawDuckComponents(None)
+            self.redrawAllDuckComponents(None)
 
     def btnCbk_setQuackBehavior(self, instance):
         if self.OneSelectedDuckComponent is not None:
             OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
             # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setQuackBehavior
             self.OneSelectedDuckComponent.setQuackBehavior(OneQuackBehavior)
-            self.btnCbk_redrawDuckComponents(None)
+            self.redrawAllDuckComponents(None)
 
     def performDuck(self, component):
         component_widget = [key for key, value in self.AllDuckButtonInstanceDictionary.iteritems() if value == component][0]
@@ -99,7 +111,7 @@ class MyApp(App):
                         break
             else:
                 self.performDuck(self.OneSelectedDuckComponent)
-            Clock.schedule_once(self.btnCbk_redrawDuckComponents, 2) # 2sec action
+            Clock.schedule_once(self.redrawAllDuckComponents, 2) # 2sec action
 
     # redraw is needed since everything inside canvas needs to be readjusted if size or position of containing layout changes
     def _redraw(self, obj, value):
@@ -150,7 +162,7 @@ class MyApp(App):
                         break
                 else:
                     pass
-            self.btnCbk_redrawDuckComponents(None)
+            self.redrawAllDuckComponents(None)
 
     def removeDuckComponent(self, component):
         for child_component in component.ChildDuckComponents:
@@ -175,7 +187,7 @@ class MyApp(App):
                 else:
                     pass
             self.OneSelectedDuckComponent = None
-            self.btnCbk_redrawDuckComponents(None)
+            self.redrawAllDuckComponents(None)
 
     def UpdateLabel(self, label):
         DuckCount = 0
@@ -230,17 +242,27 @@ class MyApp(App):
         else:
             self.redrawDuckWidget(component, parent_widget)
 
-    def btnCbk_redrawDuckComponents(self, instance):
+    def redrawAllDuckComponents(self, instance):
         self.AllDuckTypeLayout.clear_widgets()
         self.AllDuckButtonInstanceDictionary = {}
         for component in self.AllDuckTypeLayout_ChildDuckComponents:
             self.redrawDuckComponents(component, self.AllDuckTypeLayout)
         Clock.schedule_once(self.UpdateLabel, 0.1)
 
+
     def build(self):
+        '''
+        This is main function called by Kivy Framework at start of application to register root widget to be drawn by kivy.
+        '''
         self.title = 'SimUDuck'
 
         CollectionsManager.loadCollections()
+        
+        btn_new = Button(text='New', on_press=self.btnCbk_new, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_new)
+        
+        btn_save = Button(text='Save', on_press=self.btnCbk_save, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_save)
         
         btn_escape = Button(text='Escape', on_press=self.btnCbk_escape, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         self.AllControlWidgets.append(btn_escape)
@@ -303,6 +325,8 @@ class MyApp(App):
         self.AllControlWidgets.append(control_layout)
 
         control_layout.add_widget(btn_escape)
+        control_layout.add_widget(btn_new)
+        control_layout.add_widget(btn_save)
         control_layout.add_widget(btn_addNewDuck)
         control_layout.add_widget(btn_addNewCoop)
         control_layout.add_widget(btn_setFlyBehavior)
@@ -321,6 +345,9 @@ class MyApp(App):
         self.root = root
 
         Window.clearcolor = (1, 1, 1, 1)
+
+        self.AllDuckTypeLayout_ChildDuckComponents = CollectionsManager.getDatabase()
+        self.redrawAllDuckComponents(None)
 
         return root
 
