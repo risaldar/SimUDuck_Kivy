@@ -20,12 +20,16 @@ AllDuckTypes = []
 AllDuckComponentDecorators = []
 AllDuckFlyBehaviors = []
 AllDuckQauckBehaviors = []
+AllUserCommands = []
 AllDatabaseComponents = []
 
 def getDuckCollectionsRootPath(CollectionName):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Ducks\\' + CollectionName + '\Collection')
 
 def getDecorationCollectionsRootPath(CollectionName):
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), CollectionName + '\Collection')
+
+def getUserCommandRootPath(CollectionName):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), CollectionName + '\Collection')
 
 def getDatabaseRootPath(CollectionName):
@@ -37,12 +41,14 @@ def loadCollections():
     global AllDuckComponentDecorators
     global AllDuckFlyBehaviors
     global AllDuckQauckBehaviors
+    global AllUserCommands
     global AllDatabaseComponents
     AllCoopTypes = []
     AllDuckTypes = []
     AllDuckComponentDecorators = []
     AllDuckFlyBehaviors = []
     AllDuckQauckBehaviors = []
+    AllUserCommands = []
     AllDatabaseComponents = []
     # walk and collect classes
     for dirpath, dirnames, filenames in os.walk(getDuckCollectionsRootPath('CoopTypes')):
@@ -65,6 +71,10 @@ def loadCollections():
         for filename in filenames:
             if filename != '__init__.py' and filename.endswith('.py'):
                 AllDuckComponentDecorators.append(filename[len('DuckComponentDecorator'):-3])
+    for dirpath, dirnames, filenames in os.walk(getUserCommandRootPath('UserController')):
+        for filename in filenames:
+            if filename != '__init__.py' and filename.endswith('.py'):
+                AllUserCommands.append(filename[:-3])
     if os.path.exists(os.path.join(getDatabaseRootPath('Database'), 'Components.xml')):
         try:
             tree = ET.parse(os.path.join(getDatabaseRootPath('Database'), 'Components.xml'))
@@ -151,6 +161,12 @@ def createNewDuckComponentDecorator(DuckComponentDecoratorName, component):
     OneDuckComponentDecorator = DuckComponentDecoratorClass(component)
     return OneDuckComponentDecorator
 
+def createNewUserCommand(UserCommandName):
+    Module = importlib.import_module('UserController.Collection.' + UserCommandName)
+    UserCommandClass = getattr(Module, UserCommandName)
+    OneUserCommand = UserCommandClass()
+    return OneUserCommand
+
 def getDatabase():
     global AllDatabaseComponents
     return AllDatabaseComponents
@@ -170,6 +186,10 @@ def getAllDuckFlyBehaviors():
 def getAllDuckQuackBehaviors():
     global AllDuckQauckBehaviors
     return AllDuckQauckBehaviors
+
+def getAllUserCommands():
+    global AllUserCommands
+    return AllUserCommands
 
 def getAllDuckComponentDecorators():
     global AllDuckComponentDecorators

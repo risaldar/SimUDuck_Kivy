@@ -23,6 +23,8 @@ from DuckComponentDecorator import DuckComponentDecoratorClass
 from Ducks.DuckFlyBehaviors.FlyBehavior import FlyBehavior
 from Ducks.DuckQuackBehaviors.QuackBehavior import QuackBehavior
 
+from UserController.UserController import UserControllerClass
+from UserController.UserCommand import UserCommandClass
 
 # ====================================== Main ==============================#
 class MyApp(App):
@@ -35,13 +37,9 @@ class MyApp(App):
     OneSelectedButton = None
     OneSelectedDuckComponent = None
     label_totalDucks = None
+    UserController = None
 
     root = None
-
-    def _print_widgets(self, parent):
-        print parent
-        for child in parent.children:
-            self._print_widgets(child)
 
     def btnCbk_new(self, instance):
         CollectionsManager.createNewDatabase()
@@ -55,21 +53,29 @@ class MyApp(App):
         CollectionsManager.saveDatabase(self.AllDuckTypeLayout_ChildDuckComponents)
         self.OneSelectedDuckComponent = None
 
+    def btnCbk_undo(self, instance):
+        self.UserController.undoCommand()
+        self.OneSelectedDuckComponent = None
+        self.redrawAllDuckComponents(None)
+
+    def btnCbk_redo(self, instance):
+        self.UserController.redoCommand()
+        self.OneSelectedDuckComponent = None
+        self.redrawAllDuckComponents(None)
+
     def btnCbk_escape(self, instance):
         self.OneSelectedDuckComponent = None
 
     def btnCbk_addNewCoop(self, instance):
-        OneNewCoop = CollectionsManager.createNewCoop(instance.text)
-        # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
-        if self.OneSelectedDuckComponent is None or self.OneSelectedDuckComponent.addDuckComponent(OneNewCoop) == False:
-            self.AllDuckTypeLayout_ChildDuckComponents.append(OneNewCoop)
+        command = 'UserCommandAddNewCoop'
+        self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+        self.UserController.doCommand(command, instance.text, self.OneSelectedDuckComponent, self.AllDuckTypeLayout_ChildDuckComponents)
         self.redrawAllDuckComponents(None)
 
     def btnCbk_addNewDuck(self, instance):
-        OneNewDuck = CollectionsManager.createNewDuck(instance.text)
-        # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call addDuckComponent
-        if self.OneSelectedDuckComponent is None or self.OneSelectedDuckComponent.addDuckComponent(OneNewDuck) == False:
-            self.AllDuckTypeLayout_ChildDuckComponents.append(OneNewDuck)
+        command = 'UserCommandAddNewDuck'
+        self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+        self.UserController.doCommand(command, instance.text, self.OneSelectedDuckComponent, self.AllDuckTypeLayout_ChildDuckComponents)
         self.redrawAllDuckComponents(None)
 
     def btnCbk_selectOneDuckComponent(self, instance):
@@ -77,16 +83,16 @@ class MyApp(App):
 
     def btnCbk_setFlyBehavior(self, instance):
         if self.OneSelectedDuckComponent is not None:
-            OneFlyBehavior = CollectionsManager.createNewDuckFlyBehavior(instance.text)
-            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setFlyBehavior
-            self.OneSelectedDuckComponent.setFlyBehavior(OneFlyBehavior)
+            command = 'UserCommandSetFlyBehavior'
+            self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+            self.UserController.doCommand(command, instance.text, self.OneSelectedDuckComponent)
             self.redrawAllDuckComponents(None)
 
     def btnCbk_setQuackBehavior(self, instance):
         if self.OneSelectedDuckComponent is not None:
-            OneQuackBehavior = CollectionsManager.createNewDuckQuackBehavior(instance.text)
-            # Actual benefit of Composite Pattern can be seen here, Irrespective of duck or coop we can call setQuackBehavior
-            self.OneSelectedDuckComponent.setQuackBehavior(OneQuackBehavior)
+            command = 'UserCommandSetQuackBehavior'
+            self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+            self.UserController.doCommand(command, instance.text, self.OneSelectedDuckComponent)
             self.redrawAllDuckComponents(None)
 
     def performDuck(self, component):
@@ -113,79 +119,18 @@ class MyApp(App):
                 self.performDuck(self.OneSelectedDuckComponent)
             Clock.schedule_once(self.redrawAllDuckComponents, 2) # 2sec action
 
-    # redraw is needed since everything inside canvas needs to be readjusted if size or position of containing layout changes
-    def _redraw(self, obj, value):
-        for child in obj.canvas.children:
-            if type(child) is Rectangle:
-                child.pos = obj.pos
-                child.size = obj.size
-
-    def addCompositeDecoration(self, component, color):
-        for child_component in component.ChildDuckComponents:
-            if isinstance(child_component, CoopClass):
-                self.addCompositeDecoration(child_component, color)
-            else:
-                OneNewDuckComponentDecorator = CollectionsManager.createNewDuckComponentDecorator(color, child_component)
-                component.updateDuckComponent(child_component, OneNewDuckComponentDecorator)
-
-    def addDecoration(self, component, color):
-        for child_component in component.ChildDuckComponents:
-            if child_component == self.OneSelectedDuckComponent:
-                if isinstance(child_component, CoopClass):
-                    self.addCompositeDecoration(child_component, color)
-                else:
-                    OneNewDuckComponentDecorator = CollectionsManager.createNewDuckComponentDecorator(color, child_component)
-                    component.updateDuckComponent(child_component, OneNewDuckComponentDecorator)
-                    self.OneSelectedDuckComponent = OneNewDuckComponentDecorator
-                return True
-            elif isinstance(child_component, CoopClass):
-                if self.addDecoration(child_component, color) is True:
-                    return True
-            else:
-                pass
-        return False
-
     def btnCbk_addDecoration(self, instance):
         if self.OneSelectedDuckComponent is not None:
-            for component in self.AllDuckTypeLayout_ChildDuckComponents:
-                if component == self.OneSelectedDuckComponent:
-                    if isinstance(component, CoopClass):
-                        self.addCompositeDecoration(component, instance.text)
-                    else:
-                        component_index = self.AllDuckTypeLayout_ChildDuckComponents.index(component)
-                        self.AllDuckTypeLayout_ChildDuckComponents.remove(component)
-                        OneNewDuckComponentDecorator = CollectionsManager.createNewDuckComponentDecorator(instance.text, component)
-                        self.AllDuckTypeLayout_ChildDuckComponents.insert(component_index, OneNewDuckComponentDecorator)
-                        self.OneSelectedDuckComponent = OneNewDuckComponentDecorator
-                elif isinstance(component, CoopClass):
-                    if self.addDecoration(component, instance.text) is True:
-                        break
-                else:
-                    pass
+            command = 'UserCommandAddDecoration'
+            self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+            self.OneSelectedDuckComponent = self.UserController.doCommand(command, instance.text, self.OneSelectedDuckComponent, self.AllDuckTypeLayout_ChildDuckComponents)
             self.redrawAllDuckComponents(None)
-
-    def removeDuckComponent(self, component):
-        for child_component in component.ChildDuckComponents:
-            if child_component == self.OneSelectedDuckComponent:
-                component.removeDuckComponent(child_component)
-                return True
-            elif isinstance(child_component, CoopClass):
-                if self.removeDuckComponent(child_component) is True:
-                    return True
-            else:
-                pass
-        return False
 
     def btnCbk_removeDuckComponent(self, instance):
         if self.OneSelectedDuckComponent is not None:
-            for component in self.AllDuckTypeLayout_ChildDuckComponents:
-                if component == self.OneSelectedDuckComponent:
-                    self.AllDuckTypeLayout_ChildDuckComponents.remove(component)
-                elif isinstance(component, CoopClass):
-                    if self.removeDuckComponent(component) is True:
-                        break
-                else:
-                    pass
+            command = 'UserCommandRemoveDuckComponent'
+            self.UserController.setCommand(command, CollectionsManager.createNewUserCommand(command))
+            self.UserController.doCommand(command, self.OneSelectedDuckComponent, self.AllDuckTypeLayout_ChildDuckComponents)
             self.OneSelectedDuckComponent = None
             self.redrawAllDuckComponents(None)
 
@@ -204,14 +149,21 @@ class MyApp(App):
                 DuckCount += 1
         self.label_totalDucks.text="Total Ducks = " + str(DuckCount)
 
+    # redraw is needed since everything inside canvas needs to be readjusted if size or position of containing layout changes
+    def _redraw(self, obj, value):
+        for child in obj.canvas.children:
+            if type(child) is Rectangle:
+                child.pos = obj.pos
+                child.size = obj.size
+
     def redrawDuckWidget(self, component, parent_widget):
-        btn_OneNewDuck = Button(id='Duck', on_press=self.btnCbk_selectOneDuckComponent, size_hint=(1, 1))
+        btn_OneNewDuck = Button(on_press=self.btnCbk_selectOneDuckComponent, size_hint=(1, 1))
         self.AllDuckButtonInstanceDictionary[btn_OneNewDuck] = component
         component_widget = btn_OneNewDuck
         while isinstance(component, DuckComponentDecoratorClass) is True:
             # Add a container layout to selected button as per decorated color
             wrapped_widget = component_widget
-            boxlayout_OneDuckComponentDecorator = BoxLayout(id='Decorator', padding=[10, 10, 10, 10], orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
+            boxlayout_OneDuckComponentDecorator = BoxLayout(padding=[10, 10, 10, 10], orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
             decoration_color = component.getDuckComponentDecoration()[0]
             boxlayout_OneDuckComponentDecorator.canvas.add(Color(rgba=decoration_color))
             boxlayout_OneDuckComponentDecorator.canvas.add(Rectangle(pos=wrapped_widget.pos, size=wrapped_widget.size))
@@ -227,7 +179,7 @@ class MyApp(App):
         details = component.__class__.__name__.replace('Class', '') + "\n" + str(component.getColumns()) + 'x' + str(component.getRows())
         btn_OneNewCoop = Button(text=details, on_press=self.btnCbk_selectOneDuckComponent, background_color=(1.0, 0.0, 0.0, 1.0), size_hint=(1, 0.2))
         gridlayout_OneNewCoop = GridLayout(cols = component.getColumns(), rows = component.getRows())
-        boxlayout_OneNewCoop = BoxLayout(id='Coop', orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
+        boxlayout_OneNewCoop = BoxLayout(orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
         boxlayout_OneNewCoop.add_widget(btn_OneNewCoop)
         boxlayout_OneNewCoop.add_widget(gridlayout_OneNewCoop)
         self.AllDuckButtonInstanceDictionary[btn_OneNewCoop] = component
@@ -263,6 +215,12 @@ class MyApp(App):
         
         btn_save = Button(text='Save', on_press=self.btnCbk_save, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         self.AllControlWidgets.append(btn_save)
+        
+        btn_undo = Button(text='Undo', on_press=self.btnCbk_undo, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_undo)
+        
+        btn_redo = Button(text='Redo', on_press=self.btnCbk_redo, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
+        self.AllControlWidgets.append(btn_redo)
         
         btn_escape = Button(text='Escape', on_press=self.btnCbk_escape, size_hint=(1, 0.2), halign="left", pos_hint={'top': 1})
         self.AllControlWidgets.append(btn_escape)
@@ -327,6 +285,8 @@ class MyApp(App):
         control_layout.add_widget(btn_escape)
         control_layout.add_widget(btn_new)
         control_layout.add_widget(btn_save)
+        control_layout.add_widget(btn_undo)
+        control_layout.add_widget(btn_redo)
         control_layout.add_widget(btn_addNewDuck)
         control_layout.add_widget(btn_addNewCoop)
         control_layout.add_widget(btn_setFlyBehavior)
@@ -336,7 +296,7 @@ class MyApp(App):
         control_layout.add_widget(btn_removeDuckComponent)
         control_layout.add_widget(self.label_totalDucks)
 
-        self.AllDuckTypeLayout = BoxLayout(id='AllDuckTypeLayout', size_hint=(1, 1), pos_hint={'bottom': 1})
+        self.AllDuckTypeLayout = BoxLayout(size_hint=(1, 1), pos_hint={'bottom': 1})
 
         root = BoxLayout(orientation='vertical', size_hint=(1, 1), pos_hint={'top': 1})
         root.add_widget(control_layout)
@@ -348,6 +308,9 @@ class MyApp(App):
 
         self.AllDuckTypeLayout_ChildDuckComponents = CollectionsManager.getDatabase()
         self.redrawAllDuckComponents(None)
+
+        # setting up controller
+        self.UserController = UserControllerClass()
 
         return root
 

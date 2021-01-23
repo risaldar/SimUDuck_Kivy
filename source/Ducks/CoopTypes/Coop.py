@@ -27,11 +27,14 @@ class CoopClass(DuckComponentClass):
         # Unneeded method for Duck class but implemented due to Composite Pattern
         pass
 
-    def addDuckComponent(self, component):
-        self.ChildDuckComponents.append(component)
+    def addDuckComponent(self, component, component_index = None):
+        if component_index is not None:
+            self.ChildDuckComponents.insert(component_index, component)
+        else:
+            self.ChildDuckComponents.append(component)
         return True
 
-    def updateDuckComponent(self, component_old, component_new):
+    def replaceDuckComponent(self, component_old, component_new):
         component_index = self.ChildDuckComponents.index(component_old)
         self.ChildDuckComponents.remove(component_old)
         self.ChildDuckComponents.insert(component_index, component_new)
@@ -39,10 +42,11 @@ class CoopClass(DuckComponentClass):
 
     def removeDuckComponent(self, component):
         if component in self.ChildDuckComponents:
+            component_index = self.ChildDuckComponents.index(component)
             self.ChildDuckComponents.remove(component)
-            return True
+            return component_index
         else:
-            return False
+            return -1
 
     def createIterator(self):
         self.CoopIterator = CoopIteratorClass(iter(self.ChildDuckComponents))
